@@ -138,3 +138,37 @@ location @friendly_404 {
     return 404 'Sorry, that resource could not be found.';
 }
 ```
+
+## Access log and error log
+To enable logging on a particular location (for example `/secure`), use `access_log` and `error_log` directives
+
+```nginx
+location /secure {
+    access_log /var/log/nginx/secure.access.log
+
+    return 200 "Welcome to secure area.";
+}
+```
+
+This will only log requests to `/secure` to `secure.access.log` file, but not `access.log`. Additionally, if you want to enable logging for both, you need to explicitly specify logging to `access.log`.
+
+```nginx
+location /secure {
+    access_log /var/log/nginx/secure.access.log
+    access_log /var/log/nginx/access.log
+
+    return 200 "Welcome to secure area.";
+}
+```
+
+To disable logging for a given context
+
+```nginx
+location /secure {
+    access_log off;
+
+    return 200 "Welcome to secure area.";
+}
+```
+
+Also, check out this [document](https://nginx.org/en/docs/http/ngx_http_log_module.html) for more configuration with the directive.
