@@ -225,3 +225,40 @@ http {
     }
 }
 ```
+
+## Use nginx as a reverse proxy for php
+
+```nginx
+# remember to always set this
+# you would need to run as the same user as php.sock for nginx to be able to read uds from php process.
+user www-data;
+
+events {}
+
+http {
+    include mime.types;
+
+    server {
+        listen      80;
+        server_name 10.0.0.56;
+        root /sites/demo;
+
+        # tell nginx which file to load if the request points to a directory
+        # /request_path/ for example, it will load /request_path/index.html
+        index index.php index.html;
+
+        location / {
+            try_files $uri $uri/ =404;
+        }
+
+        location ~ \.php$ {
+            # pass php requests to the php-fpm service (fastcgi)
+            include fastcgi.conf;
+            # forward all the request to php.sock
+            fastcgi_pass unix:/run/php/php7.1-fpm.sock;
+        }
+    }
+}
+```
+
+This will forward the request to php server and serve the response back.
