@@ -36,7 +36,7 @@ location /hello {
 ```
 
 ## Variable
-NgINX default will have a default list of variables. Check out it [here](https://nginx.org/en/docs/varindex.html).
+nginx default will have a default list of variables. Check out it [here](https://nginx.org/en/docs/varindex.html).
 
 To set a custom variable, you can call `set` with the variable name and value.
 
