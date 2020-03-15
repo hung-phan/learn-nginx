@@ -114,3 +114,27 @@ Rewrite url can get complicated quickly. If you want your url won't be rewrite a
 ```nginx
 rewrite ^/user/(\w+) /greet/$1 last;
 ```
+
+## try_files directive
+Make nginx check for a resource to response with in any number of location relative to root directory. The last element will be considered as the rewrite.
+
+```nginx
+try_files $uri /greet /friendly_404;
+
+location /friendly_404 {
+    return 404 'Sorry, that resource could not be found.';
+}
+```
+
+This config means try the current `$uri`, `/greet` that relative the root path, if nothing matches it will rewrite the uri to `/friendly_404`. Relative to the root directory means if you have `root /sites/demo;`, then `try_files` will check for file under `/sites/demo/$uri` and `/sites/demo/greet`. 
+
+## Name location
+Allow you to name a resource and refer to it by name instead of uri path. Use the `@` to start naming a location.
+
+```nginx
+try_files $uri /greet @friendly_404;
+
+location @friendly_404 {
+    return 404 'Sorry, that resource could not be found.';
+}
+```
