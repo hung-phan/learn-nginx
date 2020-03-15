@@ -263,7 +263,7 @@ http {
 
 This will forward the request to php server and serve the response back.
 
-## nginx worker
+## nginx workers and connections
 By default nginx only spawns 1 instance of nginx worker. To config it to spawn more workers, use `worker_process` on the root context.
 
 ```nginx
@@ -291,3 +291,50 @@ In theory, it would look like this.
 ```
 worker_processes x worker_connections = max_connections
 ```
+
+## nginx buffers and timeouts optimisation
+Buffering means that nginx worker process reads data into memory before writing it to the next destination, or when serving static file it will load the content into the memory before responding to the client.
+
+![nginx-buffer-request](/images/nginx-buffer-request.png)
+
+![nginx-buffer-static-file](/images/nginx-buffer-static-file.png)
+
+Timeouts simply mean the cut-off time for certain events.
+
+![nginx-timeouts](/images/nginx-timeouts.png)
+
+```nginx
+user www-data;
+
+http {
+    include mime.types;
+
+    # Buffer size for POST submissions
+    client_body_buffer_size 10K; # if your form-data is large, it is better to increase this buffer_size
+    client_max_body_size 8M; # Don't accept body that large than 8M
+
+    # Buffer size for Headers
+    client_header_buffer_size 1K;
+
+    # Max time to receive client headers/body
+    # This is not the time taken to transmit the entire request body, but the time between consecutive read operation that happens to the buffer
+    client_body_timeout 12; # in milliseconds
+    client_header_timeout 12;
+
+    # Max time to keep a connection open for
+    keepalive_timeout 15;
+
+    # Max time for the client accept/receive a response
+    send_timeout 10;
+
+    # Skip buffering for static files and write directly bytes to the response
+    sendfile on;
+
+    # Optimise sendfile packets
+    tcp_nopush on;
+}
+```
+
+![nginx-buffer-directive](/images/nginx-buffer-directive.png)
+![nginx-timeout-directive](/images/nginx-timeout-directive.png)
+
