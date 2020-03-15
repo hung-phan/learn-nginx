@@ -172,3 +172,56 @@ location /secure {
 ```
 
 Also, check out this [document](https://nginx.org/en/docs/http/ngx_http_log_module.html) for more configuration with the directive.
+
+## Inheritance and directive types
+
+There are 3 types of directives: `Standard directive`, `Array directive`, `Action directive`.
+
+```nginx
+events {}
+
+# 1. Array directive
+# Can be specified multiple times without overriding a previous setting
+# Gets inherited by all child context
+# Child context can override inheritance by re-delaring directive
+access_log /var/log/nginx/access.log
+access_log /var/log/nginx/custome.log.gz custom_format;
+
+http {
+    # include statement - non directive
+    include mime.types;
+    server {
+        listen 80;
+        sever_name site1.com;
+
+        # inherits access_log from parent context (1)
+    }
+
+    server {
+        listen 80;
+        server_name site2.com;
+
+        # 2. Standard directive
+        # Can only be declared once. A second declaration overrides the first
+        # Gets inherited by all child contexts
+        # Child context can override inheritance by re-declaring directive
+
+        root /sites/site2;
+
+        # Completely overrides inheritance from (1)
+        access_log off;
+
+        location /images {
+            # Uses root directive inherited from (2)
+            try_files $uri /stock.png;
+        }
+
+        location /secret {
+            # 3. Action directive
+            # Invokes an action such as a rewrite or redirect
+            # Inheritance does not apply as the request is either stopped (redirect/response) or re-evaluated (rewrite)
+            return 403 "You do not have permission to view this.";
+        }
+    }
+}
+```
