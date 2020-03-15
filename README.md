@@ -262,3 +262,32 @@ http {
 ```
 
 This will forward the request to php server and serve the response back.
+
+## nginx worker
+By default nginx only spawns 1 instance of nginx worker. To config it to spawn more workers, use `worker_process` on the root context.
+
+```nginx
+worker_processes 2;
+```
+
+Spawning more worker_processes by no mean provide better performance. Those nginx workers already handle request asynchronously. It means they will handle requests as fast as the hardware are capable of. Therefore, increasing worker simply doesn't improve hardware capability.
+
+![nginx-worker](/images/nginx-worker.png)
+
+1 nginx process will be run on a single core, so normally you would want to maximise your hardware capability by running the same number of workers as the number of cpu cores. To know how many cores your server have, run `nproc` or `lscpu`.
+
+Luckily, nginx provide `worker_process auto;` to automate this process.
+
+Additionally, when dealing with worker_processes, you should also care for the number of opened file descriptor (fd). To check the maximum number of fd you can open, run `ulimit`. This is equivalent on the maximum number of connections your server can handle. 
+
+```nginx
+events {
+    # allow number of opened fd
+    worker_connections 1024;
+}
+```
+
+In theory, it would look like this.
+```
+worker_processes x worker_connections = max_connections
+```
