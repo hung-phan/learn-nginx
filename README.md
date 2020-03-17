@@ -264,7 +264,7 @@ http {
 This will forward the request to php server and serve the response back.
 
 ## nginx workers and connections
-By default nginx only spawns 1 instance of nginx worker. To config it to spawn more workers, use `worker_process` on the root context.
+By default nginx only spawns 1 instance of nginx worker. To config it to spawn more workers, use `worker_process` on the main context.
 
 ```nginx
 worker_processes 2;
@@ -338,3 +338,48 @@ http {
 ![nginx-buffer-directive](/images/nginx-buffer-directive.png)
 ![nginx-timeout-directive](/images/nginx-timeout-directive.png)
 
+## Add nginx dynamic modules
+In order to add dynamic modules to nginx, you have to rebuild nginx from source
+
+Making sure that you don't change any default nginx configuration by running this command first.
+
+```bash
+$ nginx -V
+# for example
+nginx version: nginx/1.13.0
+built by gcc 7.2.0 (Ubuntu 7.2.0-8ubuntu3.2)
+built with OpenSSL 1.0.2g
+TLS SNI support enalbed
+configure arguments: --sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --pid-path=/var/run/nginx.pid --with-pcre --with-http_ssl_module
+```
+
+To see a list of available configuration, in nginx src repo. Run
+
+```bash
+$ ./configure --help
+```
+
+To build a dynamic module (for example, with-http_image_filter_module=dynamic) with nginx, run:
+
+```bash
+$ ./configure --sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --pid-path=/var/run/nginx.pid --with-pcre --with-http_ssl_module --with-http_image_filter_module=dynamic --modules-path=/etc/nginx/modules
+$ make
+$ make install
+```
+
+`modules-path` is to specify the install location the module and make it easier to refer to it later in the code.
+
+```nginx
+# load the dynamic module
+load_module modules/ngx_http_image_filter_module.so;
+
+http {
+    # ...
+    server {
+        # ...
+        location = /thumb.png {
+            image_filter rotate 180;
+        }
+    }
+}
+```
