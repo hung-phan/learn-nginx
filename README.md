@@ -393,7 +393,23 @@ location ~* \.(css|js|jpg|png)$ {
 
     add_header Cache-Control public;
     add_header Pragma public;
-    add_header Vary Accept-Encoding;
+    add_header Vary Accept-Encoding; # Specify that the response can be very based on Accept-Encoding from the client. For example (gzip)
     expires 1M;
 }
 ```
+
+## Compress with gzip
+Compression can be used to reduce the file sizes that are sent to the client, which overall can lead to better performance in the client side. However, the trade-off of that is it would consume more resources for compressing those files.
+
+```nginx
+http {
+    gzip on;
+    gzip_comp_level 3;
+    gzip_types text/css;
+    gzip_types text/javascript;
+}
+```
+
+Compress level can be from 0 to 9. However, the best utilisation of server resources and file sizes are around 3 to 4.
+
+![nginx-compression-level](/images/nginx-compression-level.png)
