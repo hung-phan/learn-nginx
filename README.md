@@ -413,3 +413,48 @@ http {
 Compress level can be from 0 to 9. However, the best utilisation of server resources and file sizes are around 3 to 4.
 
 ![nginx-compression-level](/images/nginx-compression-level.png)
+
+## FastCGI Cache
+FastCGI Cache can help reduce greatly server load by serving dynamic content from cache.
+
+```nginx
+http {
+    fastcgi_cache_path /tmp/nginx_cache levels=1:2 key_zone=ZONE_1:100m inactive=60m;
+    fastcgi_cache_key "$scheme$request_method$host$request_uri";
+
+    # allow you have more visibility into cache status
+    add_header X-Cache $upstream_cache_status;
+
+    server {
+        location ~ \.php$ {
+            # pass php requests to the php-fpm service (fastcgi)
+            include fastcgi.conf;
+            # forward all the request to php.sock
+            fastcgi_pass unix:/run/php/php7.1-fpm.sock;
+
+            # Enable cache by the name and status type
+            fastcgi_cache ZONE_1;
+            fastcgi_cache_valid 200 60m;
+        }
+    }
+}
+```
+
+For certain request, if you want to skip storing request content into nginx cache. You can config fastcgi to ignore certain request using `fastcgi_cache_bypass` and `fastcgi_no_cache`.
+
+```nginx
+http {
+    set $no_cache 0;
+
+    if ($arg_skipcache = 1) {
+        set $no_cache 1;
+    }
+
+    server {
+        location ~ \.php$ {
+            fastcgi_cache_bypass $no_cache;
+            fastcgi_no_cache $no_cache;
+        }
+    }
+}
+```
