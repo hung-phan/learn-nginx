@@ -537,3 +537,35 @@ To generate dhparam,
 ```bash
 openssl dhparam 2048 -out /etc/nginx/ssl/dhparam.pem
 ```
+
+## Rate limiting
+
+To define rate limiting, you can specify it as below.
+
+```nginx
+http {
+    # Define limit zone
+    # limit_req_zone $binary_remote_addr zone=MYZONE:10m rate=60r/m;
+    limit_req_zone $request_uri zone=MYZONE:10m rate=60r/m;
+
+    server {
+        # ...
+
+        location / {
+            # burst define the buffer for connection in nginx
+            # supposing that we have a rate limiting of 1r/s,
+            # when you send 6 requests at a same time, only 1
+            # request get process by upstream server, and the
+            # remained 5 requests will have to wait.
+            # limit_req zone=MYZONE burst=5;
+
+            # when specify nodelay, it will allow the burst of 5 requests
+            # to be sent to upstream and return
+            limit_req zone=MYZONE burst=5 nodelay;
+            try_files $uri $uri/ =404;
+        }
+    }
+}
+```
+
+`$binary_remote_addr` will do the rate limiting based on user ip.
