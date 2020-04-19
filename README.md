@@ -458,3 +458,24 @@ http {
     }
 }
 ```
+
+## [HTTP2](https://en.wikipedia.org/wiki/HTTP/2)
+To enable HTTP2 for nginx server, you have to rebuild nginx with dynamic module. Make sure you follow the built step on `Add nginx dynamic modules`, then build nginx with `--with-http_v2_module` and `--with-http_ssl_module` (You would need to enable SSL for HTTP2 to work).
+
+You can generate temporary private and public key for testing by openssl.
+
+```bash
+openssl req -x509 -days 10 -nodes -newkey rsa:2048 -keyout /etc/nginx/ssl/self.key -out /etc/nginx/ssl/self.crt
+```
+
+Then enable SSL on the nginx config.
+
+```nginx
+http {
+    # enable ssl and http2
+    listen 443 ssl http2;
+
+    ssl_certificate /etc/nginx/ssl/self.crt;
+    ssl_certificate_key /etc/nginx/ssl/self.key;
+}
+```
