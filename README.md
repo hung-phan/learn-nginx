@@ -79,7 +79,7 @@ location /inspect {
 ```
 
 ## Rewrites & Redirect
-Rewrite and redirect have the same purpose but it will have a very different result.
+Rewrite and redirect have the same purpose, but it will have a very different result.
 
 #### Redirect
 For redirect, browser will be the one who requests for new resources from the server again. For example:
@@ -491,4 +491,49 @@ http {
         http2_push /thumb.png;
     }
 }
+```
+
+## Optimise HTTPS
+
+To redirect all http requests to https, you can create another `server` directive and do the redirect to https server.
+
+```nginx
+server {
+    listen 80;
+    server_name 10.0.0.56;
+    return 301 https://$host$request_uri;
+}
+```
+
+Additionally, you can fine tune TLS configuration on nginx to improve its performance.
+
+```nginx
+server {
+    # Disable SSL protocol
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+
+    # Optimise cipher suits
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
+
+    # Enable DH params
+    # https://wiki.openssl.org/index.php/Diffie-Hellman_parameters
+    ssl_dhparam /etc/nginx/ssl/dhparam.pem;
+
+    # Enable HSTS (Strict transport security)
+    # This is the header to tell browser not to load any thing from http
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    # SSL sessions
+    # to caching handshake data on SSL and improve connection time
+    ssl_session_cache shared:SSL:40m;
+    ssl_session_timeout 4h;
+    ssl_session_tickets on;
+}
+```
+
+To generate dhparam,
+
+```bash
+openssl dhparam 2048 -out /etc/nginx/ssl/dhparam.pem
 ```
