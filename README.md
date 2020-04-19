@@ -479,3 +479,16 @@ http {
     ssl_certificate_key /etc/nginx/ssl/self.key;
 }
 ```
+
+## Server push
+
+To enable requesting for the resource in a same request like index.html. You would require server push enabled.
+
+```nginx
+http {
+    location = /index.html {
+        http2_push /style.css;
+        http2_push /thumb.png;
+    }
+}
+```
