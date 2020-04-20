@@ -569,3 +569,39 @@ http {
 ```
 
 `$binary_remote_addr` will do the rate limiting based on user ip.
+
+## Basic Auth
+
+For basic auth to work, you have to generate password using `httpd-tools` or `apache2-utils` first.
+
+```bash
+htpasswd -c /etc/nginx/.htpasswd user1
+```
+
+Then
+
+```nginx
+http {
+    server {
+        location / {
+            auth_basic "Secure Area";
+            auth_basic_user_file /etc/nginx/.htpasswd;
+            try_files $uri /$uri =404;
+        }
+    }
+}
+```
+
+## Hardening nginx
+
+```nginx
+http {
+    # hide nginx version for security reason
+    server_tokens off;
+
+    server {
+        add_header X-Frame-Options "SAMEORIGIN";
+        add_header X-XSS-Protection "1; mode=block";
+    }
+}
+```
