@@ -605,3 +605,51 @@ http {
     }
 }
 ```
+
+## Let's Encrypt with nginx
+
+Supposing we have a simple configuration like this.
+
+```nginx
+http {
+    server {
+        listen 80;
+        # certbot will use this info when inspect your nginx.conf
+        server_name yourdomain.com;
+
+        location / {
+            return 200 "Hello from NGINX";
+        }
+    }
+}
+```
+
+For Let's Encrypt to work, firstly go to https://certbot.eff.org/ and follow the guide there
+to set up auto renewal for your certificate. Sth like this as an example:
+https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx
+
+Then, execute:
+
+```bash
+certbot --nginx
+```
+
+The command will try to do some modifications to your nginx config. Sth similar like this
+
+```nginx
+http {
+    server {
+        listen 443 ssl;
+        ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+        include /etc/letsencrypt/options-ssl-nginx.conf;
+        ssh_dhparam /etc/letsencrypt/ssh-dhparams.pem;
+    }
+}
+```
+
+To renew your certificate, run:
+
+```bash
+certbor renew
+```
