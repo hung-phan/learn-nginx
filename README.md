@@ -677,3 +677,113 @@ http {
     }
 }
 ```
+
+## Load balancer
+
+```nginx
+events {}
+
+http {
+    upstream php_servers {
+        server localhost:10001;
+        server localhost:10002;
+        server localhost:10003;
+    }
+
+    server {
+        listen 8888;
+
+        location /php {
+            proxy_pass 'http://php_servers';
+        }
+    }
+}
+```
+
+## Load balancer options
+
+`Round Robin` – Requests are distributed evenly across the servers, with server weights taken into consideration. This method is used by default (there is no directive for enabling it):
+
+```nginx
+upstream backend {
+   # no load balancing method is specified for Round Robin
+   server backend1.example.com;
+   server backend2.example.com;
+}
+```
+
+`Least Connections` – A request is sent to the server with the least number of active connections, again with server weights taken into consideration:
+
+```nginx
+upstream backend {
+    least_conn;
+    server backend1.example.com;
+    server backend2.example.com;
+}
+```
+
+`IP Hash` – The server to which a request is sent is determined from the client IP address. In this case, either the first three octets of the IPv4 address or the whole IPv6 address are used to calculate the hash value. The method guarantees that requests from the same address get to the same server unless it is not available.
+
+```nginx
+upstream backend {
+    ip_hash;
+    server backend1.example.com;
+    server backend2.example.com;
+}
+```
+
+If one of the servers needs to be temporarily removed from the load‑balancing rotation, it can be marked with the down parameter in order to preserve the current hashing of client IP addresses. Requests that were to be processed by this server are automatically sent to the next server in the group:
+
+```nginx
+upstream backend {
+    server backend1.example.com;
+    server backend2.example.com;
+    server backend3.example.com down;
+}
+```
+
+`Generic Hash` – The server to which a request is sent is determined from a user‑defined key which can be a text string, variable, or a combination. For example, the key may be a paired source IP address and port, or a URI as in this example:
+
+```nginx
+upstream backend {
+    hash $request_uri consistent;
+    server backend1.example.com;
+    server backend2.example.com;
+}
+```
+
+The optional consistent parameter to the hash directive enables ketama consistent‑hash load balancing. Requests are evenly distributed across all upstream servers based on the user‑defined hashed key value. If an upstream server is added to or removed from an upstream group, only a few keys are remapped which minimizes cache misses in the case of load‑balancing cache servers or other applications that accumulate state.
+
+`Least Time` (NGINX Plus only) – For each request, NGINX Plus selects the server with the lowest average latency and the lowest number of active connections, where the lowest average latency is calculated based on which of the following parameters to the least_time directive is included:
+
+header – Time to receive the first byte from the server
+last_byte – Time to receive the full response from the server
+last_byte inflight – Time to receive the full response from the server, taking into account incomplete requests
+
+```nginx
+upstream backend {
+    least_time header;
+    server backend1.example.com;
+    server backend2.example.com;
+}
+```
+
+
+`Random` – Each request will be passed to a randomly selected server. If the two parameter is specified, first, NGINX randomly selects two servers taking into account server weights, and then chooses one of these servers using the specified method:
+
+least_conn – The least number of active connections
+least_time=header (NGINX Plus) – The least average time to receive the response header from the server ($upstream_header_time)
+least_time=last_byte (NGINX Plus) – The least average time to receive the full response from the server ($upstream_response_time)
+
+```nginx
+upstream backend {
+    random two least_time=last_byte;
+    server backend1.example.com;
+    server backend2.example.com;
+    server backend3.example.com;
+    server backend4.example.com;
+}
+```
+The Random load balancing method should be used for distributed environments where multiple load balancers are passing requests to the same set of backends. For environments where the load balancer has a full view of all requests, use other load balancing methods, such as round robin, least connections and least time.
+
+Note: When configuring any method other than Round Robin, put the corresponding directive (hash, ip_hash, least_conn, least_time, or random) above the list of server directives in the upstream {} block.
