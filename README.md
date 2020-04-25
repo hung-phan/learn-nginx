@@ -653,3 +653,27 @@ To renew your certificate, run:
 ```bash
 certbor renew
 ```
+
+## Reverse proxy
+
+```nginx
+http {
+    server {
+        listen 8888;
+
+        location /php {
+            # set the header on client side
+            add_header proxied nginx;
+            # set the header on the upstream side
+            proxy_set_header proxied nginx;
+
+
+            proxy_pass 'http://localhost:9999/';
+        }
+
+        location /nginxorg {
+            proxy_pass 'https://nginx.org/';
+        }
+    }
+}
+```
