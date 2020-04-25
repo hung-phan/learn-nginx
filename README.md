@@ -787,3 +787,5 @@ upstream backend {
 The Random load balancing method should be used for distributed environments where multiple load balancers are passing requests to the same set of backends. For environments where the load balancer has a full view of all requests, use other load balancing methods, such as round robin, least connections and least time.
 
 Note: When configuring any method other than Round Robin, put the corresponding directive (hash, ip_hash, least_conn, least_time, or random) above the list of server directives in the upstream {} block.
+
+Note: Check this [documentation](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/#method) method of load balancing and sticky session 
