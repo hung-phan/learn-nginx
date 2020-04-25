@@ -789,3 +789,22 @@ The Random load balancing method should be used for distributed environments whe
 Note: When configuring any method other than Round Robin, put the corresponding directive (hash, ip_hash, least_conn, least_time, or random) above the list of server directives in the upstream {} block.
 
 Note: Check this [documentation](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/#method) method of load balancing and sticky session 
+
+## Common pitfalls
+
+This is a must read for configuring nginx server [Common Pitfalls](https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls)
+
+## Video streaming
+
+You would need to manually build nginx `--with-http_mp4_module`.
+
+```nginx
+server {
+    location ~ \.mp4$ {
+        root /sites/downloads/;
+        mp4;
+        mp4_buffer_size 4M;
+        mp4_max_buffer_size 10M;
+    }
+}
+```
